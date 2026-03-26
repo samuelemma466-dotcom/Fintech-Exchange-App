@@ -39,9 +39,16 @@ import { DecimalPipe } from '@angular/common';
             </div>
             
             <div class="space-y-1">
-              <p class="text-sm font-medium text-slate-400">Current Rate</p>
+              <p class="text-sm font-medium text-slate-400">Buy Rate</p>
               <div class="flex items-center gap-2">
-                <h2 class="text-3xl font-bold text-white">{{ rate.rate | number:'1.2-6' }}</h2>
+                <h2 class="text-xl font-bold text-white">{{ rate.buyRate | number:'1.2-6' }}</h2>
+              </div>
+              <p class="text-sm font-medium text-slate-400 mt-2">Sell Rate</p>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-bold text-white">{{ rate.sellRate | number:'1.2-6' }}</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-2">Market: {{ rate.marketRate | number:'1.2-6' }} | Fee: {{ rate.feePercent }}%</p>
+              <div class="absolute top-4 right-4 flex gap-2">
                 <button (click)="editRate(rate)" class="text-emerald-400 hover:text-emerald-300 transition-colors">
                   <mat-icon class="text-[20px]">edit</mat-icon>
                 </button>
@@ -72,9 +79,15 @@ import { DecimalPipe } from '@angular/common';
                   <input id="to-input" type="text" [(ngModel)]="currentPair.to" [disabled]="isEditing()" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors uppercase" placeholder="NGN">
                 </div>
               </div>
-              <div>
-                <label for="rate-input" class="block text-sm font-medium text-slate-400 mb-2">Exchange Rate</label>
-                <input id="rate-input" type="number" [(ngModel)]="currentPair.rate" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="0.00">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label for="market-rate-input" class="block text-sm font-medium text-slate-400 mb-2">Market Rate</label>
+                  <input id="market-rate-input" type="number" [(ngModel)]="currentPair.marketRate" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="0.00">
+                </div>
+                <div>
+                  <label for="fee-input" class="block text-sm font-medium text-slate-400 mb-2">Fee (%)</label>
+                  <input id="fee-input" type="number" [(ngModel)]="currentPair.feePercent" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="0.00">
+                </div>
               </div>
               <button (click)="saveRate()" class="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-600 transition-colors mt-4">
                 Save Rate
@@ -94,12 +107,13 @@ export class AdminExchangeComponent {
   currentPair: Partial<ExchangeRate> = {
     from: '',
     to: '',
-    rate: 0
+    marketRate: 0,
+    feePercent: 0
   };
 
   openCreateModal() {
     this.isEditing.set(false);
-    this.currentPair = { from: '', to: '', rate: 0 };
+    this.currentPair = { from: '', to: '', marketRate: 0, feePercent: 0 };
     this.showModal.set(true);
   }
 
@@ -114,19 +128,26 @@ export class AdminExchangeComponent {
   }
 
   saveRate() {
-    if (this.currentPair.from && this.currentPair.to && this.currentPair.rate) {
+    if (this.currentPair.from && this.currentPair.to && this.currentPair.marketRate) {
       if (this.isEditing()) {
-        this.mockData.exchangeRates.update(rates => 
-          rates.map(r => r.id === this.currentPair.id ? { ...r, rate: this.currentPair.rate! } : r)
+        this.mockData.baseExchangeRates.update(rates => 
+          rates.map(r => r.id === this.currentPair.id ? { 
+            ...r, 
+            marketRate: this.currentPair.marketRate!,
+            feePercent: this.currentPair.feePercent || 0
+          } : r)
         );
       } else {
         const newRate: ExchangeRate = {
           id: `rate-${Date.now()}`,
           from: this.currentPair.from.toUpperCase(),
           to: this.currentPair.to.toUpperCase(),
-          rate: this.currentPair.rate
+          buyRate: 0, // Computed dynamically
+          sellRate: 0, // Computed dynamically
+          marketRate: this.currentPair.marketRate!,
+          feePercent: this.currentPair.feePercent || 0
         };
-        this.mockData.exchangeRates.update(rates => [...rates, newRate]);
+        this.mockData.baseExchangeRates.update(rates => [...rates, newRate]);
       }
       this.closeModal();
     }
@@ -134,7 +155,7 @@ export class AdminExchangeComponent {
 
   deleteRate(id: string) {
     if (confirm('Are you sure you want to delete this exchange rate?')) {
-      this.mockData.exchangeRates.update(rates => rates.filter(r => r.id !== id));
+      this.mockData.baseExchangeRates.update(rates => rates.filter(r => r.id !== id));
     }
   }
 }

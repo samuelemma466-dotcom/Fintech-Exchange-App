@@ -17,6 +17,7 @@ import { AdminTransactionsComponent } from './pages/admin/transactions.component
 import { AdminFlipsComponent } from './pages/admin/flips.component';
 import { AdminExchangeComponent } from './pages/admin/exchange.component';
 import { AdminGiftCardsComponent } from './pages/admin/giftcards.component';
+import { AdminSettingsComponent } from './pages/admin/settings.component';
 
 export const routes: Routes = [
   { 
@@ -43,7 +44,8 @@ export const routes: Routes = [
       { path: 'transactions', component: AdminTransactionsComponent },
       { path: 'flipping', component: AdminFlipsComponent },
       { path: 'exchange', component: AdminExchangeComponent },
-      { path: 'giftcards', component: AdminGiftCardsComponent }
+      { path: 'giftcards', component: AdminGiftCardsComponent },
+      { path: 'settings', component: AdminSettingsComponent }
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

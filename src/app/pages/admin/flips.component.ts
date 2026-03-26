@@ -28,6 +28,7 @@ import { FormsModule } from '@angular/forms';
                 <th class="px-6 py-4">Title</th>
                 <th class="px-6 py-4">Entry Amount</th>
                 <th class="px-6 py-4">Expected Reward</th>
+                <th class="px-6 py-4">Fee</th>
                 <th class="px-6 py-4">Duration</th>
                 <th class="px-6 py-4">Status</th>
                 <th class="px-6 py-4 text-right">Actions</th>
@@ -49,6 +50,7 @@ import { FormsModule } from '@angular/forms';
                   </td>
                   <td class="px-6 py-4 text-sm font-bold text-white">{{ session.entryAmount | currency:'USD':'symbol-narrow':'1.2-2' }}</td>
                   <td class="px-6 py-4 text-sm font-bold text-emerald-400">{{ session.expectedReward | currency:'USD':'symbol-narrow':'1.2-2' }}</td>
+                  <td class="px-6 py-4 text-sm font-bold text-amber-400">{{ session.platformFeePercent }}%</td>
                   <td class="px-6 py-4 text-sm text-slate-300">{{ session.duration }}</td>
                   <td class="px-6 py-4">
                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
@@ -103,9 +105,15 @@ import { FormsModule } from '@angular/forms';
                   <input id="reward-input" type="number" [(ngModel)]="newSession.expectedReward" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors">
                 </div>
               </div>
-              <div>
-                <label for="duration-input" class="block text-sm font-medium text-slate-400 mb-2">Duration</label>
-                <input id="duration-input" type="text" [(ngModel)]="newSession.duration" placeholder="e.g. 7 Days" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label for="duration-input" class="block text-sm font-medium text-slate-400 mb-2">Duration</label>
+                  <input id="duration-input" type="text" [(ngModel)]="newSession.duration" placeholder="e.g. 7 Days" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors">
+                </div>
+                <div>
+                  <label for="fee-input" class="block text-sm font-medium text-slate-400 mb-2">Platform Fee (%)</label>
+                  <input id="fee-input" type="number" step="0.1" [(ngModel)]="newSession.platformFeePercent" placeholder="5.0" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors">
+                </div>
               </div>
               <button (click)="createSession()" class="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-600 transition-colors mt-4">
                 Create Session
@@ -127,6 +135,7 @@ export class AdminFlipsComponent {
     expectedReward: 0,
     duration: '',
     status: 'open',
+    platformFeePercent: 0,
     participants: []
   };
 
@@ -136,7 +145,7 @@ export class AdminFlipsComponent {
 
   closeCreateModal() {
     this.showCreateModal.set(false);
-    this.newSession = { title: '', entryAmount: 0, expectedReward: 0, duration: '', status: 'open', participants: [] };
+    this.newSession = { title: '', entryAmount: 0, expectedReward: 0, duration: '', status: 'open', platformFeePercent: 0, participants: [] };
   }
 
   createSession() {
@@ -148,6 +157,7 @@ export class AdminFlipsComponent {
         expectedReward: this.newSession.expectedReward,
         duration: this.newSession.duration || 'TBD',
         status: 'open',
+        platformFeePercent: this.newSession.platformFeePercent || 0,
         participants: []
       };
       this.mockData.flipSessions.update(sessions => [session, ...sessions]);

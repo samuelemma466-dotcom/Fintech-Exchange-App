@@ -164,17 +164,21 @@ import { FormsModule } from '@angular/forms';
                   </div>
                   <div class="flex justify-between items-center pb-4 border-b border-slate-800">
                     <span class="text-slate-400">Rate</span>
-                    <span class="font-bold text-emerald-400">{{ selectedCard()?.rate | percent:'1.0-2' }}</span>
+                    <span class="font-bold text-emerald-400">{{ (activeTab() === 'sell' ? selectedCard()?.buyRate : selectedCard()?.sellRate) | percent:'1.0-2' }}</span>
                   </div>
                   <div class="flex justify-between items-center pb-4 border-b border-slate-800">
                     <span class="text-slate-400">Amount</span>
                     <span class="font-bold">{{ amount() || 0 }} {{ selectedCard()?.currency }}</span>
                   </div>
+                  <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+                    <span class="text-slate-400">Processing Fee</span>
+                    <span class="font-bold text-amber-400">{{ selectedCard()?.feePercent }}%</span>
+                  </div>
                   
                   <div class="pt-4 mt-4">
                     <p class="text-sm text-slate-400 mb-1">{{ activeTab() === 'sell' ? 'Estimated Payout' : 'Total Cost' }}</p>
                     <p class="text-4xl font-bold text-white">
-                      {{ (activeTab() === 'sell' ? calculatedPayout() : amount()) | currency:mockData.currentUser().currency:'symbol-narrow':'1.2-2' }}
+                      {{ (activeTab() === 'sell' ? calculatedPayout() : calculatedCost()) | currency:mockData.currentUser().currency:'symbol-narrow':'1.2-2' }}
                     </p>
                   </div>
                 </div>
@@ -198,7 +202,9 @@ import { FormsModule } from '@angular/forms';
                   <th class="px-6 py-4">Brand</th>
                   <th class="px-6 py-4">Region</th>
                   <th class="px-6 py-4">Currency</th>
-                  <th class="px-6 py-4">Rate</th>
+                  <th class="px-6 py-4">Buy Rate</th>
+                  <th class="px-6 py-4">Sell Rate</th>
+                  <th class="px-6 py-4">Fee</th>
                   <th class="px-6 py-4">Stock</th>
                 </tr>
               </thead>
@@ -215,7 +221,9 @@ import { FormsModule } from '@angular/forms';
                     </td>
                     <td class="px-6 py-4 text-sm text-slate-600">{{ card.region }}</td>
                     <td class="px-6 py-4 text-sm font-medium text-slate-900">{{ card.currency }}</td>
-                    <td class="px-6 py-4 text-sm font-bold text-emerald-600">{{ card.rate | percent:'1.0-2' }}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-emerald-600">{{ card.buyRate | percent:'1.0-2' }}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-indigo-600">{{ card.sellRate | percent:'1.0-2' }}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-amber-600">{{ card.feePercent }}%</td>
                     <td class="px-6 py-4">
                       <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
                             [class.bg-emerald-100]="card.stockAvailability" [class.text-emerald-800]="card.stockAvailability"
@@ -259,7 +267,18 @@ export class UserGiftCardsComponent {
     const card = this.selectedCard();
     const amt = this.amount();
     if (!card || !amt) return 0;
-    return amt * card.rate;
+    const payout = amt * card.buyRate;
+    const fee = payout * (card.feePercent / 100);
+    return payout - fee;
+  });
+
+  calculatedCost = computed(() => {
+    const card = this.selectedCard();
+    const amt = this.amount();
+    if (!card || !amt) return 0;
+    const cost = amt * card.sellRate;
+    const fee = cost * (card.feePercent / 100);
+    return cost + fee;
   });
 
   getBrandIcon(brand: string): string {
@@ -294,7 +313,7 @@ export class UserGiftCardsComponent {
     if (this.activeTab() === 'sell') {
       return this.proof().trim().length > 0;
     } else {
-      return (this.mockData.currentUser().balances[this.mockData.currentUser().currency] || 0) >= amt;
+      return (this.mockData.currentUser().balances[this.mockData.currentUser().currency] || 0) >= this.calculatedCost();
     }
   }
 

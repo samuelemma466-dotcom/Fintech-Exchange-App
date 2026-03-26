@@ -84,6 +84,7 @@ export class AdminLayoutComponent {
     { path: '/admin/flipping', label: 'Flipping', icon: 'sync', exact: false },
     { path: '/admin/exchange', label: 'Exchange Rates', icon: 'currency_exchange', exact: false },
     { path: '/admin/giftcards', label: 'Gift Cards', icon: 'card_giftcard', exact: false },
-    { path: '/admin/transactions', label: 'Transactions', icon: 'receipt_long', exact: false }
+    { path: '/admin/transactions', label: 'Transactions', icon: 'receipt_long', exact: false },
+    { path: '/admin/settings', label: 'Settings', icon: 'settings', exact: false }
   ];
 }

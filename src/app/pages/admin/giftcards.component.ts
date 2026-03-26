@@ -27,7 +27,8 @@ import { PercentPipe } from '@angular/common';
               <tr class="bg-slate-900/50 border-b border-slate-700 text-xs uppercase tracking-wider text-slate-400 font-semibold">
                 <th class="px-6 py-4">Brand</th>
                 <th class="px-6 py-4">Region</th>
-                <th class="px-6 py-4">Rate</th>
+                <th class="px-6 py-4">Buy/Sell Rate</th>
+                <th class="px-6 py-4">Fee</th>
                 <th class="px-6 py-4">Limits</th>
                 <th class="px-6 py-4">Stock</th>
                 <th class="px-6 py-4 text-right">Actions</th>
@@ -50,7 +51,13 @@ import { PercentPipe } from '@angular/common';
                       <span class="text-xs text-slate-500">{{ card.currency }}</span>
                     </div>
                   </td>
-                  <td class="px-6 py-4 text-sm font-bold text-emerald-400">{{ card.rate | percent:'1.0-2' }}</td>
+                  <td class="px-6 py-4">
+                    <div class="flex flex-col">
+                      <span class="text-sm font-bold text-emerald-400">B: {{ card.buyRate | percent:'1.0-2' }}</span>
+                      <span class="text-sm font-bold text-indigo-400">S: {{ card.sellRate | percent:'1.0-2' }}</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-sm font-bold text-amber-400">{{ card.feePercent }}%</td>
                   <td class="px-6 py-4 text-sm text-slate-300">
                     {{ card.minValue }} - {{ card.maxValue }}
                   </td>
@@ -108,8 +115,23 @@ import { PercentPipe } from '@angular/common';
                   <input id="currency-input" type="text" [(ngModel)]="currentCard.currency" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors uppercase" placeholder="USD">
                 </div>
                 <div>
-                  <label for="rate-input" class="block text-sm font-medium text-slate-400 mb-2">Rate (0.0 - 1.0)</label>
-                  <input id="rate-input" type="number" step="0.01" [(ngModel)]="currentCard.rate" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="0.85">
+                  <label for="market-rate-input" class="block text-sm font-medium text-slate-400 mb-2">Market Rate</label>
+                  <input id="market-rate-input" type="number" step="0.01" [(ngModel)]="currentCard.marketRate" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="1.0">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label for="buy-rate-input" class="block text-sm font-medium text-slate-400 mb-2">Buy Rate (0.0-1.0)</label>
+                  <input id="buy-rate-input" type="number" step="0.01" [(ngModel)]="currentCard.buyRate" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="0.85">
+                </div>
+                <div>
+                  <label for="sell-rate-input" class="block text-sm font-medium text-slate-400 mb-2">Sell Rate (0.0-1.0)</label>
+                  <input id="sell-rate-input" type="number" step="0.01" [(ngModel)]="currentCard.sellRate" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="0.95">
+                </div>
+                <div>
+                  <label for="fee-input" class="block text-sm font-medium text-slate-400 mb-2">Fee (%)</label>
+                  <input id="fee-input" type="number" step="0.1" [(ngModel)]="currentCard.feePercent" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="2.5">
                 </div>
               </div>
 
@@ -155,7 +177,10 @@ export class AdminGiftCardsComponent {
   currentCard: Partial<GiftCard> = {
     brand: '',
     region: '',
-    rate: 0,
+    buyRate: 0,
+    sellRate: 0,
+    marketRate: 0,
+    feePercent: 0,
     currency: '',
     minValue: 0,
     maxValue: 0,
@@ -165,7 +190,7 @@ export class AdminGiftCardsComponent {
 
   openCreateModal() {
     this.isEditing.set(false);
-    this.currentCard = { brand: '', region: '', rate: 0, currency: '', minValue: 0, maxValue: 0, stockAvailability: true, image: 'card_giftcard' };
+    this.currentCard = { brand: '', region: '', buyRate: 0, sellRate: 0, marketRate: 0, feePercent: 0, currency: '', minValue: 0, maxValue: 0, stockAvailability: true, image: 'card_giftcard' };
     this.showModal.set(true);
   }
 
@@ -186,7 +211,7 @@ export class AdminGiftCardsComponent {
   }
 
   saveCard() {
-    if (this.currentCard.brand && this.currentCard.region && this.currentCard.rate && this.currentCard.currency) {
+    if (this.currentCard.brand && this.currentCard.region && this.currentCard.buyRate && this.currentCard.sellRate && this.currentCard.currency) {
       if (this.isEditing()) {
         this.mockData.giftCards.update(cards => 
           cards.map(c => c.id === this.currentCard.id ? { ...c, ...this.currentCard } as GiftCard : c)
@@ -196,7 +221,10 @@ export class AdminGiftCardsComponent {
           id: `gc-${Date.now()}`,
           brand: this.currentCard.brand,
           region: this.currentCard.region,
-          rate: this.currentCard.rate,
+          buyRate: this.currentCard.buyRate,
+          sellRate: this.currentCard.sellRate,
+          marketRate: this.currentCard.marketRate || 1,
+          feePercent: this.currentCard.feePercent || 0,
           currency: this.currentCard.currency,
           minValue: this.currentCard.minValue || 0,
           maxValue: this.currentCard.maxValue || 0,

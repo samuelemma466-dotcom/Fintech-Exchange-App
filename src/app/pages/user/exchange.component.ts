@@ -55,12 +55,21 @@ import { FormsModule } from '@angular/forms';
             </div>
 
             <!-- Rate Info -->
-            <div class="flex items-center justify-between p-4 bg-indigo-50 rounded-xl text-indigo-900">
-              <div class="flex items-center gap-2">
-                <mat-icon class="text-[20px]">info</mat-icon>
-                <span class="text-sm font-medium">Exchange Rate</span>
+            <div class="flex flex-col gap-2 p-4 bg-indigo-50 rounded-xl text-indigo-900">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <mat-icon class="text-[20px]">info</mat-icon>
+                  <span class="text-sm font-medium">Exchange Rate</span>
+                </div>
+                <span class="text-sm font-bold">1 {{ fromCurrency() }} = {{ currentRate() | number:'1.2-4' }} {{ toCurrency() }}</span>
               </div>
-              <span class="text-sm font-bold">1 {{ fromCurrency() }} = {{ currentRate() | number:'1.2-4' }} {{ toCurrency() }}</span>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <mat-icon class="text-[20px]">receipt_long</mat-icon>
+                  <span class="text-sm font-medium">Transaction Fee</span>
+                </div>
+                <span class="text-sm font-bold">{{ currentFeePercent() }}%</span>
+              </div>
             </div>
 
             <button 
@@ -144,17 +153,32 @@ export class UserExchangeComponent {
     const from = this.fromCurrency();
     const to = this.toCurrency();
     const rateObj = this.mockData.exchangeRates().find(r => r.from === from && r.to === to);
-    if (rateObj) return rateObj.rate;
+    if (rateObj) return rateObj.buyRate;
     
     // Check reverse rate
     const reverseRateObj = this.mockData.exchangeRates().find(r => r.from === to && r.to === from);
-    if (reverseRateObj) return 1 / reverseRateObj.rate;
+    if (reverseRateObj) return 1 / reverseRateObj.sellRate;
+
+    return 0;
+  });
+
+  currentFeePercent = computed(() => {
+    const from = this.fromCurrency();
+    const to = this.toCurrency();
+    const rateObj = this.mockData.exchangeRates().find(r => r.from === from && r.to === to);
+    if (rateObj) return rateObj.feePercent;
+    
+    const reverseRateObj = this.mockData.exchangeRates().find(r => r.from === to && r.to === from);
+    if (reverseRateObj) return reverseRateObj.feePercent;
 
     return 0;
   });
 
   convertedAmount = computed(() => {
-    return this.amount() * this.currentRate();
+    const amount = this.amount();
+    const fee = amount * (this.currentFeePercent() / 100);
+    const netAmount = amount - fee;
+    return netAmount * this.currentRate();
   });
 
   swapCurrencies() {

@@ -23,6 +23,9 @@ import { CurrencyPipe } from '@angular/common';
                 <th class="px-6 py-4">Type</th>
                 <th class="px-6 py-4">Details</th>
                 <th class="px-6 py-4">Amount</th>
+                <th class="px-6 py-4">Fee</th>
+                <th class="px-6 py-4">Profit</th>
+                <th class="px-6 py-4">Net Amount</th>
                 <th class="px-6 py-4">Status</th>
                 <th class="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -43,6 +46,9 @@ import { CurrencyPipe } from '@angular/common';
                     }
                   </td>
                   <td class="px-6 py-4 text-sm font-bold text-white">{{ tx.amount | currency:tx.currency:'symbol-narrow':'1.2-2' }}</td>
+                  <td class="px-6 py-4 text-sm text-slate-400">{{ (tx.fee || 0) | currency:tx.currency:'symbol-narrow':'1.2-2' }}</td>
+                  <td class="px-6 py-4 text-sm text-emerald-400">{{ (tx.profit || 0) | currency:tx.currency:'symbol-narrow':'1.2-2' }}</td>
+                  <td class="px-6 py-4 text-sm font-bold text-indigo-300">{{ (tx.netAmount || tx.amount) | currency:tx.currency:'symbol-narrow':'1.2-2' }}</td>
                   <td class="px-6 py-4">
                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
                           [class.bg-amber-500/10]="tx.status === 'pending'" [class.text-amber-400]="tx.status === 'pending'"
